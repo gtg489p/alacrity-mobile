@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/dashboard/screens/dashboard_screen.dart';
+import '../../features/gantt/screens/gantt_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/splash/screens/splash_screen.dart';
 import '../../shared/app_shell.dart';
@@ -41,11 +42,7 @@ GoRouter router(Ref ref) {
             routes: [
               GoRoute(
                 path: '/gantt',
-                builder: (_, __) => const PlaceholderScreen(
-                  title: 'Gantt Chart',
-                  subtitle: 'Coming in Phase 2',
-                  icon: Icons.view_timeline,
-                ),
+                builder: (_, __) => const GanttScreen(),
               ),
             ],
           ),
