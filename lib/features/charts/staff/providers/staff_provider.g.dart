@@ -6,11 +6,12 @@ part of 'staff_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$staffDataHash() => r'ffa334cbd3eb0172e56d53f40015d9be4f730790';
+String _$staffDataHash() => r'f79da618eb3f2dc83f84948d56e6e164b10bc0fd';
 
 /// See also [staffData].
 @ProviderFor(staffData)
-final staffDataProvider = AutoDisposeFutureProvider<StaffData>.internal(
+final staffDataProvider =
+    AutoDisposeFutureProvider<CachedResult<StaffData>>.internal(
   staffData,
   name: r'staffDataProvider',
   debugGetCreateSourceHash:
@@ -21,6 +22,6 @@ final staffDataProvider = AutoDisposeFutureProvider<StaffData>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef StaffDataRef = AutoDisposeFutureProviderRef<StaffData>;
+typedef StaffDataRef = AutoDisposeFutureProviderRef<CachedResult<StaffData>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -6,11 +6,12 @@ part of 'dashboard_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$dashboardDataHash() => r'38fc8760883e7c01f91420f6d135ed4768982203';
+String _$dashboardDataHash() => r'06a402597fdc4bf581ce4f1121c36ff09f6c2406';
 
 /// See also [dashboardData].
 @ProviderFor(dashboardData)
-final dashboardDataProvider = AutoDisposeFutureProvider<DashboardData>.internal(
+final dashboardDataProvider =
+    AutoDisposeFutureProvider<CachedResult<DashboardData>>.internal(
   dashboardData,
   name: r'dashboardDataProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -22,6 +23,7 @@ final dashboardDataProvider = AutoDisposeFutureProvider<DashboardData>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef DashboardDataRef = AutoDisposeFutureProviderRef<DashboardData>;
+typedef DashboardDataRef
+    = AutoDisposeFutureProviderRef<CachedResult<DashboardData>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

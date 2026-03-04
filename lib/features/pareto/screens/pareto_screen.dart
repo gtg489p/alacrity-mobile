@@ -1,12 +1,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/cache/cache_manager.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/chart_colors.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/loading_shimmer.dart';
+import '../../../core/widgets/offline_banner.dart';
 import '../models/pareto_models.dart';
 import '../providers/pareto_provider.dart';
 
@@ -31,7 +33,7 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(paretoFrontProvider),
         child: dataAsync.when(
-          loading: () => const LoadingShimmer(),
+          loading: () => const ChartSkeleton(),
           error: (err, _) => SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: SizedBox(
@@ -42,26 +44,37 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
               ),
             ),
           ),
-          data: (solutions) {
+          data: (result) {
+            final solutions = result.data;
             if (solutions.isEmpty) {
-              return const Center(child: Text('No Pareto solutions available'));
+              return const Center(
+                  child: Text('No Pareto solutions available'));
             }
             final activeId = ref.watch(activeScheduleNotifierProvider);
-            return ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
+            return Column(
               children: [
-                // Axis selectors
-                _buildAxisSelectors(theme),
-                const SizedBox(height: 16),
-                // Scatter chart
-                SizedBox(
-                  height: 320,
-                  child: _buildScatterChart(solutions, activeId, theme),
+                if (result.isStale)
+                  OfflineBanner(
+                    cacheKey: result.cacheKey ?? CacheKeys.paretoFront,
+                    onRetry: () => ref.invalidate(paretoFrontProvider),
+                  ),
+                Expanded(
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      _buildAxisSelectors(theme),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 320,
+                        child: _buildScatterChart(
+                            solutions, activeId, theme),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildLegend(solutions, theme),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                // Legend
-                _buildLegend(solutions, theme),
               ],
             );
           },
@@ -171,21 +184,24 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
               ),
             ),
           ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
         gridData: FlGridData(
           show: true,
           drawHorizontalLine: true,
           drawVerticalLine: true,
-          getDrawingHorizontalLine: (_) =>
-              FlLine(color: theme.colorScheme.outlineVariant, strokeWidth: 0.5),
-          getDrawingVerticalLine: (_) =>
-              FlLine(color: theme.colorScheme.outlineVariant, strokeWidth: 0.5),
+          getDrawingHorizontalLine: (_) => FlLine(
+              color: theme.colorScheme.outlineVariant, strokeWidth: 0.5),
+          getDrawingVerticalLine: (_) => FlLine(
+              color: theme.colorScheme.outlineVariant, strokeWidth: 0.5),
         ),
         borderData: FlBorderData(
           show: true,
-          border: Border.all(color: theme.colorScheme.outline, width: 0.5),
+          border:
+              Border.all(color: theme.colorScheme.outline, width: 0.5),
         ),
       ),
     );
@@ -215,7 +231,8 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
                 width: 10,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: ChartColors.objectiveColors[obj] ?? AppTheme.zinc500,
+                  color:
+                      ChartColors.objectiveColors[obj] ?? AppTheme.zinc500,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -226,7 +243,6 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
               ),
             ],
           ),
-        // Active schedule marker
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -263,7 +279,6 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
           controller: controller,
           padding: const EdgeInsets.all(20),
           children: [
-            // Handle bar
             Center(
               child: Container(
                 width: 40,
@@ -275,7 +290,6 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
                 ),
               ),
             ),
-            // Header
             Row(
               children: [
                 Text(
@@ -284,20 +298,22 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
                 ),
                 const Spacer(),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: ChartColors.objectiveColors[solution.objective]
+                    color: ChartColors
+                            .objectiveColors[solution.objective]
                             ?.withValues(alpha: 0.15) ??
                         AppTheme.zinc700,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    kpiShortLabels[solution.objective] ?? solution.objective,
+                    kpiShortLabels[solution.objective] ??
+                        solution.objective,
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color:
-                          ChartColors.objectiveColors[solution.objective] ??
-                              theme.colorScheme.onSurface,
+                      color: ChartColors
+                              .objectiveColors[solution.objective] ??
+                          theme.colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -305,15 +321,15 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              '${solution.solveStatus} — ${solution.solveTime.toStringAsFixed(1)}s',
+              '${solution.solveStatus} \u2014 ${solution.solveTime.toStringAsFixed(1)}s',
               style: theme.textTheme.bodySmall
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
             if (isActive) ...[
               const SizedBox(height: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppTheme.emerald500.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
@@ -329,7 +345,6 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
               ),
             ],
             const SizedBox(height: 20),
-            // All 8 KPIs
             for (final key in kpiKeys) ...[
               _kpiRow(
                 theme,
@@ -342,7 +357,6 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
               const Divider(height: 1),
             ],
             const SizedBox(height: 20),
-            // Set Active button
             if (!isActive)
               FilledButton.icon(
                 onPressed: () {
@@ -378,10 +392,6 @@ class _ParetoScreenState extends ConsumerState<ParetoScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Axis dropdown selector
-// ---------------------------------------------------------------------------
-
 class _AxisDropdown extends StatelessWidget {
   final String label;
   final String value;
@@ -400,8 +410,10 @@ class _AxisDropdown extends StatelessWidget {
     return InputDecorator(
       decoration: InputDecoration(
         labelText: '$label Axis',
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        border:
+            OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(

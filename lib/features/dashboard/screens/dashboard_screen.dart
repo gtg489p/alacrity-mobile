@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/cache/cache_manager.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/kpi_rag_card.dart';
 import '../../../core/widgets/loading_shimmer.dart';
+import '../../../core/widgets/offline_banner.dart';
 import '../../schedule_selector/screens/schedule_selector_screen.dart';
 import '../providers/dashboard_provider.dart';
 
@@ -31,7 +33,7 @@ class DashboardScreen extends ConsumerWidget {
           await ref.read(dashboardDataProvider.future);
         },
         child: dashboardAsync.when(
-          loading: () => const LoadingShimmer(),
+          loading: () => const KpiGridSkeleton(),
           error: (err, _) => SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: SizedBox(
@@ -42,7 +44,18 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
           ),
-          data: (data) => _DashboardContent(data: data),
+          data: (result) => Column(
+            children: [
+              if (result.isStale)
+                OfflineBanner(
+                  cacheKey: result.cacheKey ?? CacheKeys.dashboard,
+                  onRetry: () => ref.invalidate(dashboardDataProvider),
+                ),
+              Expanded(
+                child: _DashboardContent(data: result.data),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -64,7 +77,6 @@ class _DashboardContent extends StatelessWidget {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       children: [
-        // Schedule info header
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
           child: Row(
@@ -112,8 +124,6 @@ class _DashboardContent extends StatelessWidget {
             ],
           ),
         ),
-
-        // KPI RAG cards — horizontal scroll
         const SizedBox(height: 8),
         SizedBox(
           height: 90,
@@ -125,8 +135,6 @@ class _DashboardContent extends StatelessWidget {
             itemBuilder: (_, i) => KpiRagCard(data: data.kpis[i]),
           ),
         ),
-
-        // Last updated
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Text(
@@ -136,8 +144,6 @@ class _DashboardContent extends StatelessWidget {
             ),
           ),
         ),
-
-        // Chart preview cards (2x2 grid)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: GridView.count(
@@ -151,22 +157,22 @@ class _DashboardContent extends StatelessWidget {
               _ChartPreviewCard(
                 title: 'Gantt',
                 icon: Icons.view_timeline,
-                subtitle: 'Coming in Phase 2',
+                subtitle: 'Production schedule',
               ),
               _ChartPreviewCard(
                 title: 'Material',
                 icon: Icons.inventory_2,
-                subtitle: 'Coming in Phase 3',
+                subtitle: 'Inventory levels',
               ),
               _ChartPreviewCard(
                 title: 'Staff',
                 icon: Icons.people,
-                subtitle: 'Coming in Phase 3',
+                subtitle: 'Labor allocation',
               ),
               _ChartPreviewCard(
                 title: 'Finished Goods',
                 icon: Icons.local_shipping,
-                subtitle: 'Coming in Phase 3',
+                subtitle: 'Output tracking',
               ),
             ],
           ),

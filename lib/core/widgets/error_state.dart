@@ -15,7 +15,7 @@ class ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_off, size: 48, color: theme.colorScheme.error),
+            Icon(Icons.cloud_off, size: 48, color: theme.colorScheme.onSurfaceVariant),
             const SizedBox(height: 16),
             Text('Failed to load data', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
@@ -30,7 +30,7 @@ class ErrorState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: const Text('Try Again'),
             ),
           ],
         ),

@@ -6,11 +6,12 @@ part of 'truck_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$truckDataHash() => r'237e09246daffc1ac181caefde31ff1b2a6c862b';
+String _$truckDataHash() => r'e6fd1b8f84acf1da746343ee050ea690ab07ce28';
 
 /// See also [truckData].
 @ProviderFor(truckData)
-final truckDataProvider = AutoDisposeFutureProvider<TruckData>.internal(
+final truckDataProvider =
+    AutoDisposeFutureProvider<CachedResult<TruckData>>.internal(
   truckData,
   name: r'truckDataProvider',
   debugGetCreateSourceHash:
@@ -21,6 +22,6 @@ final truckDataProvider = AutoDisposeFutureProvider<TruckData>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef TruckDataRef = AutoDisposeFutureProviderRef<TruckData>;
+typedef TruckDataRef = AutoDisposeFutureProviderRef<CachedResult<TruckData>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

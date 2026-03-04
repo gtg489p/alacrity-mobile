@@ -6,12 +6,12 @@ part of 'pareto_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$paretoFrontHash() => r'a63e73bf1594a38359cbbd8a57968f7d8da7a65c';
+String _$paretoFrontHash() => r'4526ce651726cbe79756fe0f9297c78a58028ae2';
 
 /// See also [paretoFront].
 @ProviderFor(paretoFront)
 final paretoFrontProvider =
-    AutoDisposeFutureProvider<List<ParetoSolution>>.internal(
+    AutoDisposeFutureProvider<CachedResult<List<ParetoSolution>>>.internal(
   paretoFront,
   name: r'paretoFrontProvider',
   debugGetCreateSourceHash:
@@ -22,6 +22,7 @@ final paretoFrontProvider =
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef ParetoFrontRef = AutoDisposeFutureProviderRef<List<ParetoSolution>>;
+typedef ParetoFrontRef
+    = AutoDisposeFutureProviderRef<CachedResult<List<ParetoSolution>>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

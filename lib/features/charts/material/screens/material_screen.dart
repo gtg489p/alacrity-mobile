@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/cache/cache_manager.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_state.dart';
 import '../../../../core/widgets/loading_shimmer.dart';
+import '../../../../core/widgets/offline_banner.dart';
 import '../providers/material_provider.dart';
 import '../widgets/material_chart.dart';
 
@@ -18,7 +20,7 @@ class MaterialScreen extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () async => ref.invalidate(materialDataProvider),
       child: dataAsync.when(
-        loading: () => const LoadingShimmer(),
+        loading: () => const ChartSkeleton(),
         error: (err, _) => SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: SizedBox(
@@ -29,7 +31,8 @@ class MaterialScreen extends ConsumerWidget {
             ),
           ),
         ),
-        data: (data) {
+        data: (result) {
+          final data = result.data;
           if (data.materials.isEmpty) {
             return const SingleChildScrollView(
               physics: AlwaysScrollableScrollPhysics(),
@@ -46,42 +49,50 @@ class MaterialScreen extends ConsumerWidget {
           final fmt = NumberFormat('#,##0');
           final fmtCurrency =
               NumberFormat.currency(symbol: r'$', decimalDigits: 0);
-          return ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+          return Column(
             children: [
-              // KPI header
-              Wrap(
-                spacing: 12,
-                runSpacing: 8,
-                children: [
-                  _KpiChip(
-                    label: 'Restock Cost',
-                    value: fmtCurrency.format(data.kpi.restockCost),
-                    theme: theme,
-                  ),
-                  _KpiChip(
-                    label: 'Restocks',
-                    value: fmt.format(data.kpi.numRestocks),
-                    theme: theme,
-                  ),
-                  _KpiChip(
-                    label: 'Stockouts',
-                    value: fmt.format(data.kpi.numStockouts),
-                    theme: theme,
-                    isWarning: data.kpi.numStockouts > 0,
-                  ),
-                ],
+              if (result.isStale)
+                OfflineBanner(
+                  cacheKey: result.cacheKey ?? CacheKeys.material(null),
+                  onRetry: () => ref.invalidate(materialDataProvider),
+                ),
+              Expanded(
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 8,
+                      children: [
+                        _KpiChip(
+                          label: 'Restock Cost',
+                          value: fmtCurrency.format(data.kpi.restockCost),
+                          theme: theme,
+                        ),
+                        _KpiChip(
+                          label: 'Restocks',
+                          value: fmt.format(data.kpi.numRestocks),
+                          theme: theme,
+                        ),
+                        _KpiChip(
+                          label: 'Stockouts',
+                          value: fmt.format(data.kpi.numStockouts),
+                          theme: theme,
+                          isWarning: data.kpi.numStockouts > 0,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 300,
+                      child: MaterialChart(data: data),
+                    ),
+                    const SizedBox(height: 12),
+                    MaterialLegend(data: data),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              // Chart
-              SizedBox(
-                height: 300,
-                child: MaterialChart(data: data),
-              ),
-              const SizedBox(height: 12),
-              // Legend
-              MaterialLegend(data: data),
             ],
           );
         },

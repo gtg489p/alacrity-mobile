@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/cache/cache_manager.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/loading_shimmer.dart';
+import '../../../core/widgets/offline_banner.dart';
 import '../models/gantt_models.dart';
 import '../providers/gantt_provider.dart';
 import '../widgets/gantt_painter.dart';
@@ -36,24 +38,17 @@ class _GanttScreenState extends ConsumerState<GanttScreen> {
   }
 
   void _onTransformChanged() {
-    // Sync time ruler and row headers by triggering rebuild
     setState(() {});
   }
 
-  double get _scrollOffsetX {
-    final matrix = _transformController.value;
-    return -matrix.getTranslation().x;
-  }
+  double get _scrollOffsetX =>
+      -_transformController.value.getTranslation().x;
 
-  double get _scrollOffsetY {
-    final matrix = _transformController.value;
-    return -matrix.getTranslation().y;
-  }
+  double get _scrollOffsetY =>
+      -_transformController.value.getTranslation().y;
 
-  double get _currentScale {
-    final matrix = _transformController.value;
-    return matrix.getMaxScaleOnAxis();
-  }
+  double get _currentScale =>
+      _transformController.value.getMaxScaleOnAxis();
 
   void _handleTap(TapUpDetails details, GanttData data, GanttLayout layout) {
     final matrix = _transformController.value;
@@ -72,22 +67,19 @@ class _GanttScreenState extends ConsumerState<GanttScreen> {
 
     if (jobIndex != null) {
       HapticFeedback.selectionClick();
-      _showJobDetail(data.jobs[jobIndex]);
+      showModalBottomSheet(
+        context: context,
+        builder: (_) => JobDetailSheet(job: data.jobs[jobIndex]),
+      );
     }
-  }
-
-  void _showJobDetail(GanttJob job) {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) => JobDetailSheet(job: job),
-    );
   }
 
   void _fitToScreen(GanttLayout layout) {
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
     final viewportWidth = renderBox.size.width - _rowHeaderWidth;
-    final contentWidth = layout.totalMinutes * GanttPainter.basePixelsPerMinute;
+    final contentWidth =
+        layout.totalMinutes * GanttPainter.basePixelsPerMinute;
     final scale = (viewportWidth / contentWidth).clamp(0.1, 15.0);
     _transformController.value = Matrix4.diagonal3Values(scale, scale, 1.0);
   }
@@ -102,41 +94,50 @@ class _GanttScreenState extends ConsumerState<GanttScreen> {
     return Scaffold(
       appBar: AppBar(
         title: ganttAsync.whenOrNull(
-          data: (data) => Text(
-            'Schedule #${data.scheduleId}',
-            style: const TextStyle(fontSize: 16),
-          ),
-        ) ?? const Text('Gantt Chart', style: TextStyle(fontSize: 16)),
+              data: (result) => Text(
+                'Schedule #${result.data.scheduleId}',
+                style: const TextStyle(fontSize: 16),
+              ),
+            ) ??
+            const Text('Gantt Chart', style: TextStyle(fontSize: 16)),
         actions: [
           if (ganttAsync.hasValue)
             IconButton(
               icon: const Icon(Icons.fit_screen, size: 20),
               tooltip: 'Fit to screen',
               onPressed: () {
-                final data = ganttAsync.value!;
+                final data = ganttAsync.value!.data;
                 _fitToScreen(GanttLayout(data));
               },
             ),
-          if (ganttAsync.hasValue)
-            IconButton(
-              icon: const Icon(Icons.refresh, size: 20),
-              tooltip: 'Refresh',
-              onPressed: () => ref.invalidate(ganttDataProvider),
-            ),
+          IconButton(
+            icon: const Icon(Icons.refresh, size: 20),
+            tooltip: 'Refresh',
+            onPressed: () => ref.invalidate(ganttDataProvider),
+          ),
         ],
       ),
       body: ganttAsync.when(
-        loading: () => const _GanttLoadingState(),
+        loading: () => const GanttSkeleton(),
         error: (error, _) => ErrorState(
           error: error,
           onRetry: () => ref.invalidate(ganttDataProvider),
         ),
-        data: (data) {
-          if (data.jobs.isEmpty) {
+        data: (result) {
+          if (result.data.jobs.isEmpty) {
             return const _GanttEmptyState();
           }
-          final layout = GanttLayout(data);
-          return _buildGanttChart(data, layout);
+          final layout = GanttLayout(result.data);
+          return Column(
+            children: [
+              if (result.isStale)
+                OfflineBanner(
+                  cacheKey: result.cacheKey ?? CacheKeys.gantt(null),
+                  onRetry: () => ref.invalidate(ganttDataProvider),
+                ),
+              Expanded(child: _buildGanttChart(result.data, layout)),
+            ],
+          );
         },
       ),
     );
@@ -149,17 +150,14 @@ class _GanttScreenState extends ConsumerState<GanttScreen> {
 
     return Column(
       children: [
-        // Sticky time ruler
         SizedBox(
           height: _rulerHeight,
           child: Row(
             children: [
-              // Top-left corner (empty, aligns with row headers)
               Container(
                 width: _rowHeaderWidth,
                 color: Theme.of(context).scaffoldBackgroundColor,
               ),
-              // Time ruler that scrolls horizontally in sync
               Expanded(
                 child: ClipRect(
                   child: CustomPaint(
@@ -175,18 +173,13 @@ class _GanttScreenState extends ConsumerState<GanttScreen> {
             ],
           ),
         ),
-
-        // Main content: row headers + Gantt canvas
         Expanded(
           child: Row(
             children: [
-              // Sticky work center labels
               SizedBox(
                 width: _rowHeaderWidth,
                 child: _buildRowHeaders(layout),
               ),
-
-              // Gantt canvas with InteractiveViewer
               Expanded(
                 child: ClipRect(
                   child: GestureDetector(
@@ -260,23 +253,6 @@ class _GanttScreenState extends ConsumerState<GanttScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Loading State — shimmer placeholder mimicking Gantt rows
-// ---------------------------------------------------------------------------
-
-class _GanttLoadingState extends StatelessWidget {
-  const _GanttLoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const LoadingShimmer();
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Empty State
-// ---------------------------------------------------------------------------
-
 class _GanttEmptyState extends StatelessWidget {
   const _GanttEmptyState();
 
@@ -303,7 +279,8 @@ class _GanttEmptyState extends StatelessWidget {
           Text(
             'Select a schedule from the Dashboard to view the Gantt chart',
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              color:
+                  theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),

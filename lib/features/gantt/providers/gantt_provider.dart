@@ -1,53 +1,50 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_ce/hive.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/api/api_client.dart';
+import '../../../core/cache/cache_manager.dart';
+import '../../../core/cache/cached_result.dart';
 import '../../../core/providers/settings_provider.dart';
 import '../models/gantt_models.dart';
 
 part 'gantt_provider.g.dart';
 
-const _cacheKey = 'last_gantt';
-
 @riverpod
-Future<GanttData> ganttData(Ref ref) async {
+Future<CachedResult<GanttData>> ganttData(Ref ref) async {
   final api = ref.read(apiClientProvider);
   final scheduleId = ref.watch(activeScheduleNotifierProvider);
+  final cache = CacheManager();
+  final cacheKey = CacheKeys.gantt(scheduleId);
 
   try {
     final json = await api.fetchGantt(scheduleId: scheduleId);
     final data = GanttData.fromJson(json);
 
-    // Cache to Hive
     try {
-      final box = Hive.box('settings');
-      box.put(_cacheKey, jsonEncode(json));
-    } catch (_) {
-      // Cache write failure is non-fatal
-    }
+      cache.put(cacheKey, jsonEncode(json));
+    } catch (_) {}
 
-    return data;
+    return CachedResult(data: data, cacheKey: cacheKey);
   } catch (e) {
-    // Try loading from cache on failure
     try {
-      final box = Hive.box('settings');
-      final cached = box.get(_cacheKey) as String?;
+      final cached = cache.getStale(cacheKey);
       if (cached != null) {
-        final json = jsonDecode(cached) as Map<String, dynamic>;
-        return GanttData.fromJson(json);
+        final json = jsonDecode(cached as String) as Map<String, dynamic>;
+        return CachedResult(
+          data: GanttData.fromJson(json),
+          isStale: true,
+          cacheKey: cacheKey,
+        );
       }
-    } catch (_) {
-      // Cache read failure — rethrow original error
-    }
+    } catch (_) {}
     rethrow;
   }
 }
 
 @riverpod
 GanttLayout ganttLayout(Ref ref) {
-  final data = ref.watch(ganttDataProvider).requireValue;
-  return GanttLayout(data);
+  final result = ref.watch(ganttDataProvider).requireValue;
+  return GanttLayout(result.data);
 }

@@ -22,7 +22,7 @@ class WipCurveScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(wipDataProvider),
         child: dataAsync.when(
-          loading: () => const LoadingShimmer(),
+          loading: () => const ChartSkeleton(),
           error: (err, _) => SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: SizedBox(
@@ -36,22 +36,19 @@ class WipCurveScreen extends ConsumerWidget {
           data: (data) {
             if (data.points.isEmpty) {
               return const Center(
-                  child: Text('No WIP data — no jobs in schedule'));
+                  child: Text('No WIP data \u2014 no jobs in schedule'));
             }
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               children: [
-                // Peak WIP header
                 _PeakWipCard(data: data, theme: theme),
                 const SizedBox(height: 16),
-                // WIP chart
                 SizedBox(
                   height: 300,
                   child: _WipChart(data: data, theme: theme),
                 ),
                 const SizedBox(height: 12),
-                // Legend
                 Row(
                   children: [
                     Container(
@@ -116,8 +113,8 @@ class _PeakWipCard extends StatelessWidget {
                 ),
                 Text(
                   'at ${timeFmt.format(data.peakTime)}',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -140,16 +137,15 @@ class _WipChart extends StatelessWidget {
     if (points.isEmpty) return const SizedBox.shrink();
 
     final baseTime = points.first.time;
-    // Build step-interpolated spots: for each point, add a horizontal segment
     final spots = <FlSpot>[];
     for (var i = 0; i < points.length; i++) {
       final minutesFromStart =
           points[i].time.difference(baseTime).inMinutes.toDouble();
-      // Step: draw at previous level first (if not first point)
       if (i > 0 && spots.isNotEmpty) {
         spots.add(FlSpot(minutesFromStart, spots.last.y));
       }
-      spots.add(FlSpot(minutesFromStart, points[i].concurrentJobs.toDouble()));
+      spots.add(
+          FlSpot(minutesFromStart, points[i].concurrentJobs.toDouble()));
     }
 
     final maxMinutes = spots.last.x;
@@ -197,13 +193,14 @@ class _WipChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 36,
-              interval: maxWip > 10 ? (maxWip / 5).ceilToDouble() : 1,
+              interval:
+                  maxWip > 10 ? (maxWip / 5).ceilToDouble() : 1,
               getTitlesWidget: (value, meta) => SideTitleWidget(
                 meta: meta,
                 child: Text(
                   value.toInt().toString(),
-                  style: theme.textTheme.labelSmall
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant),
                 ),
               ),
             ),
@@ -215,9 +212,10 @@ class _WipChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
-              interval: maxMinutes > 1440 ? 1440 : 480, // daily or 8hr
+              interval: maxMinutes > 1440 ? 1440 : 480,
               getTitlesWidget: (value, meta) {
-                final t = baseTime.add(Duration(minutes: value.toInt()));
+                final t =
+                    baseTime.add(Duration(minutes: value.toInt()));
                 final label = maxMinutes > 2880
                     ? DateFormat('M/d').format(t)
                     : DateFormat('HH:mm').format(t);
@@ -232,10 +230,10 @@ class _WipChart extends StatelessWidget {
               },
             ),
           ),
-          topTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false)),
         ),
         gridData: FlGridData(
           show: true,
@@ -248,17 +246,20 @@ class _WipChart extends StatelessWidget {
         borderData: FlBorderData(
           show: true,
           border: Border(
-            left: BorderSide(color: theme.colorScheme.outline, width: 0.5),
-            bottom: BorderSide(color: theme.colorScheme.outline, width: 0.5),
+            left: BorderSide(
+                color: theme.colorScheme.outline, width: 0.5),
+            bottom: BorderSide(
+                color: theme.colorScheme.outline, width: 0.5),
           ),
         ),
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
-            getTooltipColor: (_) => theme.colorScheme.surfaceContainerHigh,
+            getTooltipColor: (_) =>
+                theme.colorScheme.surfaceContainerHigh,
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
-                final t =
-                    baseTime.add(Duration(minutes: spot.x.toInt()));
+                final t = baseTime
+                    .add(Duration(minutes: spot.x.toInt()));
                 final timeFmt = DateFormat('MMM d HH:mm');
                 return LineTooltipItem(
                   '${timeFmt.format(t)}\n${spot.y.toInt()} jobs',

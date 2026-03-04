@@ -6,11 +6,12 @@ part of 'gantt_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$ganttDataHash() => r'f33f2c9439e59567578737fe4bba37c2ca1349d2';
+String _$ganttDataHash() => r'12672e94e222e43f7638a4f100e050ab9c1b8afc';
 
 /// See also [ganttData].
 @ProviderFor(ganttData)
-final ganttDataProvider = AutoDisposeFutureProvider<GanttData>.internal(
+final ganttDataProvider =
+    AutoDisposeFutureProvider<CachedResult<GanttData>>.internal(
   ganttData,
   name: r'ganttDataProvider',
   debugGetCreateSourceHash:
@@ -21,8 +22,8 @@ final ganttDataProvider = AutoDisposeFutureProvider<GanttData>.internal(
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef GanttDataRef = AutoDisposeFutureProviderRef<GanttData>;
-String _$ganttLayoutHash() => r'd893789e0759d41686faaeebaa5bb1392385a413';
+typedef GanttDataRef = AutoDisposeFutureProviderRef<CachedResult<GanttData>>;
+String _$ganttLayoutHash() => r'acebcb9bdfa90becc64e06b0b9b3cda304e10b17';
 
 /// See also [ganttLayout].
 @ProviderFor(ganttLayout)
