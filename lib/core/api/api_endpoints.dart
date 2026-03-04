@@ -8,4 +8,5 @@ class ApiEndpoints {
   static const String factoryState = '/factory-state/';
   static const String activeSchedule = '/active-schedule/';
   static const String deviceToken = '/device-token/';
+  static const String disruption = '/disruption/';
 }

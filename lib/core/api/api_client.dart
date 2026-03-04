@@ -137,6 +137,18 @@ class ApiClient {
     return response.data as Map<String, dynamic>;
   }
 
+  Future<List<Map<String, dynamic>>> fetchDisruptions() async {
+    final response = await _dio.get(ApiEndpoints.disruption);
+    return (response.data as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<void> setActiveSchedule(int scheduleId) async {
+    await _dio.post(
+      ApiEndpoints.activeSchedule,
+      data: {'schedule_id': scheduleId},
+    );
+  }
+
   Future<ConnectionTestResult> testConnection() async {
     final stopwatch = Stopwatch()..start();
     try {

@@ -3,11 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/alerts/screens/alerts_screen.dart';
 import '../../features/charts/screens/charts_landing_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/gantt/screens/gantt_screen.dart';
+import '../../features/pareto/screens/pareto_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/splash/screens/splash_screen.dart';
+import '../../features/wip/screens/wip_screen.dart';
 import '../../shared/app_shell.dart';
 import '../../shared/placeholder_screen.dart';
 
@@ -61,11 +64,7 @@ GoRouter router(Ref ref) {
             routes: [
               GoRoute(
                 path: '/pareto',
-                builder: (_, __) => const PlaceholderScreen(
-                  title: 'Pareto Explorer',
-                  subtitle: 'Coming in Phase 3',
-                  icon: Icons.scatter_plot,
-                ),
+                builder: (_, __) => const ParetoScreen(),
               ),
             ],
           ),
@@ -90,18 +89,18 @@ GoRouter router(Ref ref) {
         ),
       ),
       GoRoute(
+        path: '/wip',
+        builder: (_, __) => const WipCurveScreen(),
+      ),
+      GoRoute(
         path: '/alerts',
-        builder: (_, __) => const PlaceholderScreen(
-          title: 'Alerts',
-          subtitle: 'Coming in Phase 4',
-          icon: Icons.notifications,
-        ),
+        builder: (_, __) => const AlertsScreen(),
       ),
       GoRoute(
         path: '/alerts/:id',
         builder: (_, state) => PlaceholderScreen(
           title: 'Alert #${state.pathParameters['id']}',
-          subtitle: 'Coming in Phase 4',
+          subtitle: 'Disruption detail',
           icon: Icons.notification_important,
         ),
       ),
