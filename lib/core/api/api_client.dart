@@ -93,6 +93,50 @@ class ApiClient {
     return response.data as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> fetchMaterial({int? scheduleId}) async {
+    final response = await _dio.get(
+      ApiEndpoints.material,
+      queryParameters: {
+        'output_format': 'json',
+        if (scheduleId != null) 'schedule_id': scheduleId,
+      },
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> fetchStaff({int? scheduleId}) async {
+    final response = await _dio.get(
+      ApiEndpoints.staff,
+      queryParameters: {
+        'output_format': 'json',
+        if (scheduleId != null) 'schedule_id': scheduleId,
+      },
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> fetchFg({int? scheduleId}) async {
+    final response = await _dio.get(
+      ApiEndpoints.fg,
+      queryParameters: {
+        'output_format': 'json',
+        if (scheduleId != null) 'schedule_id': scheduleId,
+      },
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> fetchTrucks({int? scheduleId}) async {
+    final response = await _dio.get(
+      ApiEndpoints.trucks,
+      queryParameters: {
+        'output_format': 'json',
+        if (scheduleId != null) 'schedule_id': scheduleId,
+      },
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
   Future<ConnectionTestResult> testConnection() async {
     final stopwatch = Stopwatch()..start();
     try {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../features/charts/screens/charts_landing_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/gantt/screens/gantt_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
@@ -46,53 +47,12 @@ GoRouter router(Ref ref) {
               ),
             ],
           ),
-          // Tab 2: Charts
+          // Tab 2: Charts (TabBar: Material | Staff | FG | Trucks)
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/charts',
-                builder: (_, __) => const PlaceholderScreen(
-                  title: 'Charts',
-                  subtitle: 'Coming in Phase 3',
-                  icon: Icons.bar_chart,
-                ),
-                routes: [
-                  GoRoute(
-                    path: 'material',
-                    builder: (_, __) => const PlaceholderScreen(
-                      title: 'Material Inventory',
-                      subtitle: 'Coming in Phase 3',
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'staff',
-                    builder: (_, __) => const PlaceholderScreen(
-                      title: 'Staff / Labor',
-                      subtitle: 'Coming in Phase 3',
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'fg',
-                    builder: (_, __) => const PlaceholderScreen(
-                      title: 'Finished Goods',
-                      subtitle: 'Coming in Phase 3',
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'trucks',
-                    builder: (_, __) => const PlaceholderScreen(
-                      title: 'Trucks / Shipping',
-                      subtitle: 'Coming in Phase 3',
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'wip',
-                    builder: (_, __) => const PlaceholderScreen(
-                      title: 'WIP Curve',
-                      subtitle: 'Coming in Phase 3',
-                    ),
-                  ),
-                ],
+                builder: (_, __) => const ChartsLandingScreen(),
               ),
             ],
           ),

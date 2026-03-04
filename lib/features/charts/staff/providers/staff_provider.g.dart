@@ -1,26 +1,26 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'app_router.dart';
+part of 'staff_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$routerHash() => r'ff9ea5e1aedad812f7eab5bc6ee33b34b0d90653';
+String _$staffDataHash() => r'ffa334cbd3eb0172e56d53f40015d9be4f730790';
 
-/// See also [router].
-@ProviderFor(router)
-final routerProvider = AutoDisposeProvider<GoRouter>.internal(
-  router,
-  name: r'routerProvider',
+/// See also [staffData].
+@ProviderFor(staffData)
+final staffDataProvider = AutoDisposeFutureProvider<StaffData>.internal(
+  staffData,
+  name: r'staffDataProvider',
   debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$routerHash,
+      const bool.fromEnvironment('dart.vm.product') ? null : _$staffDataHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef RouterRef = AutoDisposeProviderRef<GoRouter>;
+typedef StaffDataRef = AutoDisposeFutureProviderRef<StaffData>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
